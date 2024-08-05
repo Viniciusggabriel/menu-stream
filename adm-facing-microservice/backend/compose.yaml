@@ -14,20 +14,20 @@ services:
         aliases:
             - 'postgres'
 
-  rabbitmq:
-    image: 'rabbitmq:4.0-rc-alpine'
-    environment:
-      - 'RABBITMQ_DEFAULT_PASS=${RABBITMQ_PASSWORD}'
-      - 'RABBITMQ_DEFAULT_USER=${RABBITMQ_USERNAME}'
-    ports:
-      - '5672:5672'
-    expose:
-      - '5672'
-    networks:
-      MenuStreamNetwork:
-
-        aliases:
-          - 'rabbitmq'
+#  rabbitmq:
+#    image: 'rabbitmq:4.0-rc-alpine'
+#    environment:
+#      - 'RABBITMQ_DEFAULT_PASS=${RABBITMQ_PASSWORD}'
+#      - 'RABBITMQ_DEFAULT_USER=${RABBITMQ_USERNAME}'
+#    ports:
+#      - '5672:5672'
+#    expose:
+#      - '5672'
+#    networks:
+#      MenuStreamNetwork:
+#
+#        aliases:
+#          - 'rabbitmq'
 
 networks:
   MenuStreamNetwork:
