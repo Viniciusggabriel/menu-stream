@@ -4,19 +4,19 @@ import jakarta.persistence.*
 import java.util.*
 
 @Entity
-@Table(name = "tb_user", schema = "public")
+@Table(name = "TB_USER")
 class User(
     @Id
-    @Column(name = "id_user", nullable = false)
+    @Column(name = "ID_USER", nullable = false)
     @GeneratedValue(strategy = GenerationType.UUID)
     val idUser: UUID,
 
-    @Column(name = "ds_username", unique = true, nullable = false, length = 30)
+    @Column(name = "DS_USERNAME", unique = true, nullable = false, length = 30)
     val username: String,
 
-    @Column(name = "ds_password", nullable = false, length = 150)
+    @Column(name = "DS_PASSWORD", nullable = false, length = 150)
     val password: String,
 
-    @Column(name = "ds_role", nullable = false)
+    @Column(name = "DS_ROLE", nullable = false)
     val role: Role,
 )
