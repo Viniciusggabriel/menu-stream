@@ -1,7 +1,10 @@
-CREATE VIEW vw_top_selling_products AS
-SELECT
-    name_item,
-    category_item,
-    total_sales
-FROM bd_cliente.tb_itens
-ORDER BY total_sales DESC;
+create or replace view MENU_STREAM_ADMIN.VW_TOP_SELLING_PRODUCTS as
+select
+	TI.DS_NAME_ITEM,
+	TI.DS_VALUE_ITEM,
+	TI.DS_CATEGORY_ITEM,
+	TI.DS_TOTAL_SALES
+from
+	 MENU_STREAM_ADMIN.TB_ITENS TI
+order by
+	TI.DS_TOTAL_SALES desc;

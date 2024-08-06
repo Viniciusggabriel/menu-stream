@@ -1,9 +1,15 @@
-CREATE TRIGGER trg_update_count
-AFTER INSERT ON bd_adm.tb_orders
-FOR EACH ROW
-EXECUTE FUNCTION fn_update_order_count();
-
-CREATE TRIGGER trg_update_sales
-AFTER INSERT ON bd_adm.tb_orders
-FOR EACH ROW
-EXECUTE FUNCTION pr_update_sales_count();
+create or replace trigger TRG_UPDATE_SALES
+before
+insert
+	on
+	 MENU_STREAM_ADMIN.TB_ORDERS
+for each row
+execute function MENU_STREAM_ADMIN.FN_UPDATE_SALES_COUNT();
+----------------------------------------------------------------------------------
+create or replace trigger TRG_UPDATE_COUNT
+before
+insert
+	on
+	 MENU_STREAM_ADMIN.TB_ORDERS
+for each row
+execute function  MENU_STREAM_ADMIN.FN_UPDATE_ORDER_COUNT();

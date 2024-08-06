@@ -1,35 +1,58 @@
-CREATE OR REPLACE PROCEDURE pr_insert_order(
-    p_table CHAR(6),
-    p_item_name VARCHAR(50),
-    p_item_quantity INT,
-    p_item_obs VARCHAR(255)
+create or replace
+procedure MENU_STREAM_ADMIN.PR_INSERT_ORDER(
+    P_TABLE CHAR(6),
+    P_ITEM_NAME VARCHAR(50),
+    P_ITEM_QUANTITY INT,
+    P_ITEM_OBS VARCHAR(255)
 )
-LANGUAGE plpgsql
-AS $$
-DECLARE
-    v_id_table INT;
-    v_id_item INT;
-BEGIN
-    -- Obter o ID do item com base no name
-    SELECT it.id_item INTO v_id_item FROM bd_cliente.tb_itens AS it WHERE it.name_item = p_item_name;
+language PLPGSQL
+as $$
+declare
+    V_ID_TABLE INT;
 
-    -- Obter o ID da table
-    SELECT me.id_table INTO v_id_table FROM bd_cliente.tb_tables AS me WHERE me.number_table = p_table;
+V_ID_ITEM INT;
 
-    -- Verificar se a quantity do item é válida
-    IF p_item_quantity > 0 THEN
-        -- Inserir o pedido na tabela Pedido
-        FOR i IN 1..p_item_quantity LOOP
-            INSERT INTO bd_adm.tb_orders(fk_table_pedido, fk_item_order, obs_order, status_order)
-            VALUES (v_id_table, v_id_item, p_item_obs, 'processo');
-        END LOOP;
-    ELSE
-        RAISE EXCEPTION 'Quantidade de item inválida: %', p_item_quantity;
-    END IF;
+begin
+-- OBTER O ID DO ITEM COM BASE NO NAME
+    select
+	IT.ID_ITEM
+into
+	V_ID_ITEM
+from
+	 MENU_STREAM_ADMIN.TB_ITENS as IT
+where
+	IT.DS_NAME_ITEM = P_ITEM_NAME;
 
-EXCEPTION
-    WHEN NO_DATA_FOUND THEN
-        RAISE EXCEPTION 'Item ou table não encontrada';
-    WHEN OTHERS THEN
-        RAISE EXCEPTION 'Erro ao inserir pedido: %', SQLERRM;
-END $$;
+-- OBTER O ID DA TABLE
+select
+	ME.ID_TABLE
+into
+	V_ID_TABLE
+from
+	 MENU_STREAM_ADMIN.TB_TABLES as ME
+where
+	ME.DS_NUMBER_TABLE = P_TABLE;
+
+-- Verifica se a quantidade itens é válida
+if P_ITEM_QUANTITY > 0 then
+
+-- Insere os pedidos na tabela de pedido atrávez de um loop
+    for I in 1.. P_ITEM_QUANTITY loop
+        insert into MENU_STREAM_ADMIN.TB_ORDERS(
+            FK_TABLE_ORDER,
+            FK_ITEM_ORDER,
+            DS_OBS_ORDER,
+            DS_STATUS_ORDER)
+       values (V_ID_TABLE, V_ID_ITEM, P_ITEM_OBS, 'PROCESSO');
+    end loop;
+else
+    raise exception 'NÃO É POSSIVEL FAZER O PEDIDO DE ZERO ITENS: %', P_ITEM_QUANTITY;
+end if;
+
+exception
+when NO_DATA_FOUND then
+        raise exception 'ITEM OU TABLE NÃO ENCONTRADA';
+when others then
+        raise exception 'ERRO AO INSERIR PEDIDO: %',
+sqlerrm;
+end $$;

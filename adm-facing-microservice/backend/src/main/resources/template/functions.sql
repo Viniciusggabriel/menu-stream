@@ -1,17 +1,30 @@
-CREATE OR REPLACE FUNCTION fn_update_order_count() RETURNS TRIGGER AS $$
-BEGIN
-    UPDATE bd_cliente.tb_tables
-    SET all_orders = all_orders + 1
-    WHERE id_table = NEW.fk_table_order;
-    RETURN NEW;
-END;
-$$ LANGUAGE plpgsql;
+create or replace
+function MENU_STREAM_ADMIN.FN_UPDATE_SALES_COUNT() returns trigger as $$
+begin
+    RAISE NOTICE 'Trigger executed for item ID: %', NEW.FK_ITEM_ORDER;
 
-CREATE OR REPLACE FUNCTION fn_update_sales_count() RETURNS TRIGGER AS $$
-BEGIN
-    UPDATE bd_cliente.tb_itens
-    SET total_sales = total_sales + 1
-    WHERE id_item = NEW.fk_item_order;
-    RETURN NEW;
-END;
-$$ LANGUAGE plpgsql;
+    update
+        MENU_STREAM_ADMIN.TB_ITENS
+    set
+        DS_TOTAL_SALES = DS_TOTAL_SALES + 1
+    where
+        ID_ITEM = NEW.FK_ITEM_ORDER;
+
+    return new;
+end;
+$$ language PLPGSQL;
+----------------------------------------------------------------------------------
+create or replace
+function MENU_STREAM_ADMIN.FN_UPDATE_ORDER_COUNT() returns trigger as $$
+begin
+    update
+         MENU_STREAM_ADMIN.TB_TABLES
+    set
+        DS_TOTAL_ORDER = DS_TOTAL_ORDER + 1
+    where
+	    ID_TABLE = NEW.FK_TABLE_ORDER;
+
+return new;
+end;
+
+$$ language PLPGSQL;
