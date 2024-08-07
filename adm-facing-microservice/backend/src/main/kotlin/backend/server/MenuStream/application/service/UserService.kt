@@ -11,6 +11,11 @@ class UserService {
     @Autowired
     private lateinit var userRepository: UserRepository
 
+    /**
+     * Função para buscar usuário dentro do banco de dados, é usado o throw UserNotFound ao invés do 'UsernameNotFoundException', por que esse método irá retornar status code para o json da api
+     * @param username: String Nome de usuário a ser buscado
+     * @return User? O usuário pode ser retornado ou um erro
+     */
     fun userIsPresent(username: String): User? {
         return userRepository.findByUsername(username).orElseThrow {
             UserNotFound("Usuário não encontrado", 404)
