@@ -6,8 +6,10 @@ import org.springframework.security.oauth2.core.OAuth2TokenValidator
 import org.springframework.security.oauth2.core.OAuth2TokenValidatorResult
 import org.springframework.security.oauth2.jwt.Jwt
 import org.springframework.security.oauth2.jwt.JwtClaimNames
+import org.springframework.stereotype.Component
 
-class OAuth2TokenValidator : OAuth2TokenValidator<Jwt> {
+@Component
+class OAuth2TokenValidation : OAuth2TokenValidator<Jwt> {
     /**
      * Método para ter uma validação personalizada do JWT gerado pelo Oauth2
      * @return OAuth2TokenValidatorResult - Classe do OAuth2 que tem métodos para tratamento de erro
