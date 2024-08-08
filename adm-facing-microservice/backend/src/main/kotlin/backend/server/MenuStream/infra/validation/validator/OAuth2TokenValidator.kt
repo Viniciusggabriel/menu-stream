@@ -1,4 +1,4 @@
-package backend.server.MenuStream.infra.validator
+package backend.server.MenuStream.infra.validation.validator
 
 import org.springframework.http.HttpStatus
 import org.springframework.security.oauth2.core.OAuth2Error
