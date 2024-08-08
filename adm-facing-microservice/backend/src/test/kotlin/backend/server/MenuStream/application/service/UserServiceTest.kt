@@ -2,6 +2,7 @@ package backend.server.MenuStream.application.service
 
 import backend.server.MenuStream.application.dto.UserRequestDto
 import backend.server.MenuStream.application.dto.UserResponseDto
+import backend.server.MenuStream.infra.exception.custom.UserAlreadyExists
 import backend.server.MenuStream.infra.exception.custom.UserNotFound
 import backend.server.MenuStream.model.entity.user.Role
 import backend.server.MenuStream.model.entity.user.User
@@ -34,17 +35,15 @@ class UserServiceTest {
         userService = UserService(userRepository, passwordEncoder)
     }
 
+
     /**
-     * Teste para a busca de um usuário com sucesso.
+     * Esse teste pretende buscar um usuário dentro do banco de dados e verificar se ele bate com o usuário anteriormente salvo pelo repositório.
      *
-     * Este teste valida o comportamento do serviço de busca de usuário quando o usuário existe. O teste segue os seguintes passos:
+     * 1. Cria um usuário dentro do banco de dados, via repositório;
+     * 2. Busca esse usuário via repositório e garante que ele foi salvo;
+     * 3. Utiliza o serviço para buscar o usuário e compara o usuário achado pelo service com o usuário achado pelo Mockito.
      *
-     * 1. Cria uma entidade de usuário e um objeto de entrada com os parâmetros esperados.
-     * 2. Utiliza o Mockito para configurar e verificar o comportamento das dependências mockadas, como o repositório de usuários.
-     * 3. Chama o serviço de busca para recuperar o usuário.
-     * 4. Verifica se o usuário retornado pelo serviço corresponde ao esperado.
-     *
-     * O objetivo é assegurar que o serviço de busca retorna o usuário corretamente quando ele existe.
+     * Pretende buscar um usuário dentro do banco de dados e obter resultados positivos.
      */
     @Test
     fun `The user is present in the database`() {
@@ -54,6 +53,7 @@ class UserServiceTest {
             role = Role.EMPLOYEE
         )
 
+        Mockito.`when`(userRepository.save(user)).thenReturn(user)
         Mockito.`when`(userRepository.findByUsername(user.username)).thenReturn(Optional.of(user))
 
         val userInDatabase: User? = userService.userIsPresent(user.username)
@@ -65,16 +65,13 @@ class UserServiceTest {
     }
 
     /**
-     * Teste para a busca de um usuário por meio do seu username com erro.
+     * Esse teste pretende buscar o usuário dentro do banco de dados, porem não encontrar e assim retornar um erro adequado.
      *
-     * Este teste valida o comportamento do serviço de busca de usuário quando o usuário não existe. O teste segue os seguintes passos:
+     * 1. Utiliza o Mockito para verificar o usuário realmente não existe;
+     * 2. Chama o serviço para buscar o usuário;
+     * 3. Compara o resultado do serviço com a exceção UserNotFound lançada no serviço.
      *
-     * 1. Utiliza o Mockito para configurar e verificar o comportamento das dependências mockadas, como o repositório de usuários.
-     * 2. Configura o repositório para garantir que o usuário a ser buscado não exista.
-     * 3. Chama o serviço de busca e captura a mensagem retornada.
-     * 4. Verifica se a mensagem retornada pelo serviço corresponde à mensagem esperada para um usuário não encontrado.
-     *
-     * O objetivo é assegurar que o serviço de busca retorna uma mensagem adequada quando o usuário não é encontrado.
+     * Pretende buscar um usuário inexistente e obter uma mensagem de erro adequada com a exceção.
      */
     @Test
     fun `The user is not present in the database`() {
@@ -89,16 +86,15 @@ class UserServiceTest {
     }
 
     /**
-     * Teste para a busca de um usuário por meio do seu username com erro.
+     * Esse teste pretende salvar um usuário e verificar se ele foi realmente salvo e verificar a mensagem de retorno contendo o sucesso.
      *
-     * Este teste valida o comportamento do serviço de busca de usuário quando o usuário não existe. O teste segue os seguintes passos:
+     * 1. Instancia um objeto com os dados do usuário para salvar no banco de dados;
+     * 2. Passa a senha do usuário por um algoritmo de criptografia de senhas e verifica se tudo ocorreu corretamente;
+     * 3. Salva o usuário via repositório para verificar o retorno;
+     * 4. Chama o serviço para salvar o usuário e guardar a mensagem de sucesso;
+     * 5. Compara a mensagem obtida com a esperada.
      *
-     * 1. Utiliza o Mockito para configurar e verificar o comportamento das dependências mockadas, como o repositório de usuários.
-     * 2. Configura o repositório para garantir que o usuário a ser buscado não exista.
-     * 3. Chama o serviço de busca e captura a mensagem retornada.
-     * 4. Verifica se a mensagem retornada pelo serviço corresponde à mensagem esperada para um usuário não encontrado.
-     *
-     * O objetivo é assegurar que o serviço de busca retorna uma mensagem adequada quando o usuário não é encontrado.
+     * Pretende salvar o usuário e obter uma mensagem de sucesso ao realizar a operação.
      */
     @Test
     fun `Create user within the database`() {
@@ -114,14 +110,25 @@ class UserServiceTest {
             role = user.role
         )
 
-        Mockito.`when`(userRepository.save(Mockito.any(User::class.java))).thenReturn(user)
         Mockito.`when`(passwordEncoder.encode(userRequest.password)).thenReturn("encodedPassword")
+        Mockito.`when`(userRepository.save(Mockito.any(User::class.java))).thenReturn(user)
 
         val response: UserResponseDto = userService.saveUser(userRequest)
 
         assertEquals(UserResponseDto("Usuário salvo com sucesso!", user.username), response)
     }
 
+    /**
+     * Esse teste pretende salvar um usuário que já está salvo e verificar a mensagem de erro e se o exception está sendo retornado de forma correta
+     *
+     * 1. Instancia um objeto com os dados do usuário para salvar no banco de dados;
+     * 2. Passa a senha do usuário por um algoritmo de criptografia de senhas e verifica se tudo ocorreu corretamente;
+     * 3. Salva o usuário via repositório para verificar o retorno, e verifica se o retorno já vai ser um erro ou vai salvar o usuário;
+     * 4. Chama o serviço para salvar o usuário e guardar a mensagem de erro;
+     * 5. Compara a mensagem obtida com a esperada.
+     *
+     * Pretende salvar o usuário e obter uma mensagem de erro ao realizar a operação.
+     */
     @Test
     fun `Username exists or contains an error`() {
         val user = User(
@@ -135,6 +142,31 @@ class UserServiceTest {
             password = user.password,
             role = user.role
         )
-        // TODO: Fazer teste de usuário já existente
+
+        Mockito.`when`(passwordEncoder.encode(userRequest.password)).thenReturn("encodedPassword")
+
+        Mockito.`when`(userRepository.save(Mockito.any(User::class.java)))
+            .thenAnswer { invocation ->
+                val userToSave = invocation.getArgument<User>(0)
+
+                // Se o usuário já existir (compara o username), lança a exceção
+                if (userToSave.username == user.username) {
+                    throw UserAlreadyExists("O usuário inserido já existe!")
+                }
+
+                userToSave // Retorna o usuário salvo
+            }
+
+        Mockito.`when`(userRepository.findByUsername(user.username))
+            .thenReturn(Optional.of(user))
+
+        // Salva novamente o usuário para entrar em conflito com o que o bloco Mocki.`when`já hávia salvado
+        val exception = assertThrows(UserAlreadyExists::class.java) {
+            userService.saveUser(userRequest)
+        }
+
+        assertEquals("O usuário inserido já existe!", exception.message)
     }
+
+    //TODO: Fazer testes para verificar role errada
 }
