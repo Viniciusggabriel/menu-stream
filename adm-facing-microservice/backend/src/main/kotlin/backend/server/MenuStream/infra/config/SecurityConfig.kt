@@ -1,5 +1,6 @@
 package backend.server.MenuStream.infra.config
 
+import backend.server.MenuStream.infra.validation.validator.OAuth2TokenValidation
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 import org.springframework.security.config.annotation.web.builders.HttpSecurity
@@ -14,7 +15,7 @@ import org.springframework.security.web.SecurityFilterChain
 class SecurityConfig {
     /**
      * Método para configuração de segurança geral da aplicação
-     * @return SecurityFilterChain - Retorna a configuração de segurança que é definida pela classe HttpSecurity
+     * @return SecurityFilterChain - Retorna a configuração de segurança definida pela classe HttpSecurity
      */
     @Bean
     fun securityFilterChain(httpSecurity: HttpSecurity): SecurityFilterChain {
@@ -29,7 +30,7 @@ class SecurityConfig {
             .oauth2ResourceServer { oauth2 ->
                 oauth2.jwt { jwt ->
                     jwt.jwtAuthenticationConverter(
-                        JwtConfig().jwtAuthenticationConverter()
+                        JwtConfig(OAuth2TokenValidation()).jwtAuthenticationConverter()
                     )
                 }
             }
