@@ -27,6 +27,8 @@ class UserService(
         return userRepository.findByUsername(username).orElseThrow {
             UserNotFound("Usuário não encontrado", username, HttpStatus.NOT_FOUND)
         };
+
+        // TODO: Implementar nesse serviço a geração do token e retornar para o usuário um erro ou o token
     }
 
     /**
@@ -58,5 +60,6 @@ class UserService(
 
         val userSaved: User = userRepository.save(user)
         return UserResponseDto("Usuário salvo com sucesso!", userSaved.username)
+        // TODO: Trocar retorno de sucesso para retornar o token
     }
 }
