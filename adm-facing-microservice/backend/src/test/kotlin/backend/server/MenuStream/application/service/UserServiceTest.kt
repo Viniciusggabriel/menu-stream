@@ -64,6 +64,12 @@ class UserServiceTest {
         assertEquals("Usuário não encontrado", exception.message)
     }
 
+
+    @Test
+    fun `Create user within the database`() {
+
+    }
+
     /**
      * Função auxiliar para criar o usuário, será util caso tenhamos testes futuros
      */
