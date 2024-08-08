@@ -8,6 +8,9 @@ import org.springframework.security.core.userdetails.UsernameNotFoundException
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder
 import org.springframework.security.crypto.password.PasswordEncoder
 
+/**
+ * Essa classe já é testada no UserService e na hora de testar a criação do token para o usuário
+ */
 @Configuration
 class ApplicationConfig {
     private lateinit var userRepository: UserRepository;
