@@ -1,6 +1,8 @@
 package backend.server.MenuStream.infra.config
 
+import backend.server.MenuStream.infra.validation.validator.OAuth2TokenValidation
 import io.jsonwebtoken.security.Keys
+import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
@@ -11,7 +13,9 @@ import org.springframework.security.oauth2.server.resource.authentication.JwtGra
 import javax.crypto.SecretKey
 
 @Configuration
-class  JwtConfig {
+class JwtConfig @Autowired constructor(
+    private var oAuth2TokenValidator: OAuth2TokenValidation
+) {
     @Value("\${message.secret.key.jwt.decode}")
     private lateinit var keyBytes: String;
 
@@ -22,8 +26,9 @@ class  JwtConfig {
     @Bean
     fun jwtDecoder(): JwtDecoder {
         val key: SecretKey = Keys.hmacShaKeyFor(keyBytes.toByteArray())
-
-        return NimbusJwtDecoder.withSecretKey(key).build()
+        val jwtDecoder = NimbusJwtDecoder.withSecretKey(key).build()
+        jwtDecoder.setJwtValidator(oAuth2TokenValidator)
+        return jwtDecoder
     }
 
     /**
