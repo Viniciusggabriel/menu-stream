@@ -3,10 +3,15 @@ package backend.server.MenuStream.infra.config
 import backend.server.MenuStream.model.repository.user.UserRepository
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
+import org.springframework.security.authentication.AuthenticationManager
+import org.springframework.security.authentication.AuthenticationProvider
+import org.springframework.security.authentication.dao.DaoAuthenticationProvider
+import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration
 import org.springframework.security.core.userdetails.UserDetailsService
 import org.springframework.security.core.userdetails.UsernameNotFoundException
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder
 import org.springframework.security.crypto.password.PasswordEncoder
+
 
 /**
  * Essa classe já é testada no UserService e na hora de testar a criação do token para o usuário
@@ -26,6 +31,23 @@ class ApplicationConfig {
                 .orElseThrow { UsernameNotFoundException("Não foi possível encontrar o usuário solicitado!") }
         }
     }
+
+    @Bean
+    fun authenticationProvider(): AuthenticationProvider {
+        val daoAuthenticationProvider = DaoAuthenticationProvider()
+
+        daoAuthenticationProvider.setUserDetailsService(userDetailsService())
+        daoAuthenticationProvider.setPasswordEncoder(passwordEncoder())
+
+        return daoAuthenticationProvider
+    }
+
+    @Bean
+    @Throws(Exception::class)
+    fun authenticationManager(authenticationConfiguration: AuthenticationConfiguration): AuthenticationManager {
+        return authenticationConfiguration.authenticationManager
+    }
+
 
     /**
      * Define qual a forma de criptografia será usado para as senhas do banco de dados
