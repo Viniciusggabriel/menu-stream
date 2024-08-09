@@ -1,18 +1,23 @@
 package backend.server.MenuStream.infra.config
 
-import backend.server.MenuStream.infra.validation.validator.OAuth2TokenValidation
+import backend.server.MenuStream.infra.filter.JwtAuthenticationFilter
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
+import org.springframework.security.authentication.AuthenticationProvider
 import org.springframework.security.config.annotation.web.builders.HttpSecurity
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity
+import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer
 import org.springframework.security.config.http.SessionCreationPolicy
-import org.springframework.security.oauth2.server.resource.web.BearerTokenAuthenticationEntryPoint
-import org.springframework.security.oauth2.server.resource.web.access.BearerTokenAccessDeniedHandler
 import org.springframework.security.web.SecurityFilterChain
+import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter
+
 
 @Configuration
 @EnableWebSecurity
 class SecurityConfig {
+    private val jwtAuthFilter: JwtAuthenticationFilter? = null
+    private val authenticationProvider: AuthenticationProvider? = null
+
     /**
      * Método para configuração de segurança geral da aplicação
      * @return SecurityFilterChain - Retorna a configuração de segurança definida pela classe HttpSecurity
@@ -26,21 +31,14 @@ class SecurityConfig {
                     .requestMatchers("/v1/register").hasRole("ADM")
                     .anyRequest().authenticated()
             }
-            .sessionManagement { session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS) }
-            .oauth2ResourceServer { oauth2 ->
-                oauth2.jwt { jwt ->
-                    jwt.jwtAuthenticationConverter(
-                        JwtConfig(OAuth2TokenValidation()).jwtAuthenticationConverter()
-                    )
-                }
+            .sessionManagement { session ->
+                session
+                    .sessionCreationPolicy(SessionCreationPolicy.STATELESS)
             }
-            .exceptionHandling { exceptionHandling ->
-                exceptionHandling
-                    .authenticationEntryPoint(BearerTokenAuthenticationEntryPoint())
-                    .accessDeniedHandler(BearerTokenAccessDeniedHandler())
-            }
-            .formLogin { login -> login.disable() };
+            .authenticationProvider(authenticationProvider)
+            .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter::class.java)
+            .formLogin { form -> form.disable() }
 
-        return httpSecurity.build();
+        return httpSecurity.build()
     }
 }
