@@ -5,6 +5,7 @@ import backend.server.MenuStream.application.dto.UserResponseDto
 import backend.server.MenuStream.infra.exception.custom.IncorrectUserRole
 import backend.server.MenuStream.infra.exception.custom.UserAlreadyExists
 import backend.server.MenuStream.infra.exception.custom.UserNotFound
+import backend.server.MenuStream.infra.jwt.JwtGeneratorService
 import backend.server.MenuStream.model.entity.user.Role
 import backend.server.MenuStream.model.entity.user.User
 import backend.server.MenuStream.model.repository.user.UserRepository
@@ -15,7 +16,8 @@ import org.springframework.stereotype.Service
 @Service
 class UserService(
     private val userRepository: UserRepository,
-    private val passwordEncoder: PasswordEncoder
+    private val passwordEncoder: PasswordEncoder,
+    private val jwtGeneratorService: JwtGeneratorService
 ) {
 
     /**
@@ -23,12 +25,14 @@ class UserService(
      * @param username: String - Nome de usuário a ser buscado
      * @return User? - O usuário pode ser retornado ou um erro
      */
-    fun userIsPresent(username: String): User? {
-        return userRepository.findByUsername(username).orElseThrow {
+    fun userIsPresent(username: String): UserResponseDto {
+        val user: User = userRepository.findByUsername(username).orElseThrow {
             UserNotFound("Usuário não encontrado", username, HttpStatus.NOT_FOUND)
         };
 
-        // TODO: Implementar nesse serviço a geração do token e retornar para o usuário um erro ou o token
+        val jwtToken = jwtGeneratorService.generateToken(user);
+
+        return UserResponseDto(jwtToken, HttpStatus.OK)
     }
 
     /**
@@ -59,7 +63,8 @@ class UserService(
         }
 
         val userSaved: User = userRepository.save(user)
-        return UserResponseDto("Usuário salvo com sucesso!", userSaved.username)
-        // TODO: Trocar retorno de sucesso para retornar o token
+        val jwtToken = jwtGeneratorService.generateToken(userSaved);
+
+        return UserResponseDto(jwtToken, HttpStatus.CREATED)
     }
 }
