@@ -4,12 +4,15 @@ import backend.server.MenuStream.application.dto.UserRequestDto
 import backend.server.MenuStream.application.dto.UserResponseDto
 import backend.server.MenuStream.infra.exception.custom.UserAlreadyExists
 import backend.server.MenuStream.infra.exception.custom.UserNotFound
+import backend.server.MenuStream.infra.jwt.JwtGeneratorService
+import backend.server.MenuStream.infra.jwt.JwtValidationService
 import backend.server.MenuStream.model.entity.user.Role
 import backend.server.MenuStream.model.entity.user.User
 import backend.server.MenuStream.model.repository.user.UserRepository
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertThrows
 import org.junit.jupiter.api.BeforeEach
+import org.mockito.ArgumentMatchers
 import org.mockito.Mock
 import org.mockito.Mockito
 import org.mockito.MockitoAnnotations
@@ -24,6 +27,12 @@ class UserServiceTest {
     @Mock
     private lateinit var passwordEncoder: PasswordEncoder
 
+    @Mock
+    private lateinit var jwtGeneratorService: JwtGeneratorService
+
+    @Mock
+    private lateinit var jwtValidationService: JwtValidationService
+
     private lateinit var userService: UserService
 
     /**
@@ -32,7 +41,7 @@ class UserServiceTest {
     @BeforeEach
     fun setUp() {
         MockitoAnnotations.openMocks(this)
-        userService = UserService(userRepository, passwordEncoder)
+        userService = UserService(userRepository, passwordEncoder, jwtGeneratorService)
     }
 
 
@@ -53,15 +62,26 @@ class UserServiceTest {
             role = Role.EMPLOYEE
         )
 
+        val token = "mocked.jwt.token"
+
+        // Configura o comportamento esperado do repositório
         Mockito.`when`(userRepository.save(user)).thenReturn(user)
         Mockito.`when`(userRepository.findByUsername(user.username)).thenReturn(Optional.of(user))
 
-        val userInDatabase: User? = userService.userIsPresent(user.username)
+        // Configura o comportamento esperado do serviço de geração de token
+        Mockito.`when`(jwtGeneratorService.generateToken(user)).thenReturn(token)
 
-        assertEquals(
-            user, userInDatabase, "O resultado esperado era: ${user.username} + ${user.password} + ${user.role}" +
-                    "\nPorém foi obtido: ${userInDatabase?.username} + ${userInDatabase?.password} + ${userInDatabase?.role}"
-        )
+        // Configura o comportamento esperado do serviço de validação de token
+        Mockito.`when`(jwtValidationService.extractUserName(token)).thenReturn(user.username)
+
+        // Chama o método do serviço
+        val responseDto: UserResponseDto = userService.userIsPresent(user.username)
+
+        // Verifica se o token retornado está correto
+        assertEquals(token, responseDto.token)
+
+        // Verifica se o nome de usuário extraído do token está correto
+        assertEquals(user.username, jwtValidationService.extractUserName(responseDto.token))
     }
 
     /**
@@ -110,12 +130,26 @@ class UserServiceTest {
             role = user.role
         )
 
+        val token = "mocked.jwt.token"
+
+        // Configura o comportamento esperado do repositório
         Mockito.`when`(passwordEncoder.encode(userRequest.password)).thenReturn("encodedPassword")
-        Mockito.`when`(userRepository.save(Mockito.any(User::class.java))).thenReturn(user)
+        Mockito.`when`(userRepository.save(ArgumentMatchers.any(User::class.java))).thenReturn(user)
 
-        val response: UserResponseDto = userService.saveUser(userRequest)
+        // Configura o comportamento esperado do serviço de geração de token
+        Mockito.`when`(jwtGeneratorService.generateToken(user)).thenReturn(token)
 
-        assertEquals(UserResponseDto("Usuário salvo com sucesso!", user.username), response)
+        // Configura o comportamento esperado do serviço de validação de token
+        Mockito.`when`(jwtValidationService.extractUserName(token)).thenReturn(user.username)
+
+        // Chama o método do serviço
+        val responseDto: UserResponseDto = userService.saveUser(userRequest)
+
+        // Verifica se o token retornado está correto
+        assertEquals(token, responseDto.token)
+
+        // Verifica se o nome de usuário extraído do token está correto
+        assertEquals(user.username, jwtValidationService.extractUserName(responseDto.token))
     }
 
     /**
